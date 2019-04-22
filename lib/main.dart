@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_demo/list_ui.dart';
 import 'package:flutter_demo/detail.dart';
+import 'package:flutter_demo/list_ui.dart';
 import 'package:flutter_demo/net.dart';
-import 'package:flutter_demo/waitingDialog.dart' as Waiting;
 import 'package:flutter_demo/novel/w_book_info.dart';
+import 'package:flutter_demo/waitingDialog.dart' as Waiting;
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:gbk2utf8/gbk2utf8.dart';
 import 'package:html/dom.dart' as Dom;
 import 'package:html/parser.dart' show parse;
 
@@ -28,6 +29,7 @@ class Main extends StatefulWidget {
   createState() => new MainState();
 }
 
+TextEditingController searchInputController = new TextEditingController();
 ListContent listContent = new ListContent();
 class MainState extends State<Main> {
   @override
@@ -45,7 +47,7 @@ class MainState extends State<Main> {
             createRowBtn(context, "Detail", 1),
             new Divider(),
             createRowBtn(context, "Load", 2),
-            createEdit(),
+            createEdit(searchInputController),
             listContent,
         ],
       ),
@@ -53,8 +55,9 @@ class MainState extends State<Main> {
   }
 }
 
-Widget createEdit() {
+Widget createEdit(TextEditingController controller) {
   return new TextField(
+    controller: controller,
     maxLines: 1,//最大行数
     autofocus: false,//是否自动对焦
     style: TextStyle(fontSize: 16.0, color: Colors.black),//输入文本的样式
@@ -83,7 +86,7 @@ void actionClick(BuildContext context, int type) {
   switch(type) {
     case 0:
       Navigator.of(context).push(
-        new MaterialPageRoute(builder: (context) => new ListDemo()),
+        new MaterialPageRoute(builder: (context) => new BookDetail()),
       );
       break;
     case 1:
@@ -94,7 +97,16 @@ void actionClick(BuildContext context, int type) {
     case 2:
       Waiting.WaitingDialog waitingDialog = Waiting.showWaiting(context, "...");
       waitingDialog.updateContent("正在获取数据");
-      Future<String> body = NetUtils.query("https://www.fpzw.com/sort1");
+
+      Map<String, String> params = new Map();
+      params["searchtype"] = "keywords";
+      params["searchkey"] = searchInputController.text;
+//      params["searchkey"] = Uri.encodeQueryComponent(searchInputController.text, encoding: gbk);
+
+      String url = "https://www.fpzw.com/modules/article/search.php";
+      Uri uri = Uri.dataFromString(url, encoding: gbk, parameters: params);
+
+      Future<String> body = NetUtils.queryUri(uri);
       body.then((bodyStr) {
         waitingDialog.updateContent("数据解析");
         return parseHtml(bodyStr);
@@ -146,6 +158,7 @@ void toastInfo(String info) {
   );
 }
 
+// ignore: must_be_immutable
 class ListContent extends StatefulWidget {
   ContentState state = new ContentState();
   @override
@@ -164,17 +177,14 @@ class ContentState extends State<ListContent> {
 //        itemBuilder: (BuildContext context, int position) {
 //          return new WBookInfo(_bookList.elementAt(position));
 //        });
-    return ListView.separated(
+    return ListView.builder(
         shrinkWrap: true,
         physics:NeverScrollableScrollPhysics(),
         itemBuilder: (context, index) => WBookInfo(_bookList.elementAt(index)),
-        separatorBuilder: (context, index) => Divider(
-          color: Color(0xFFFF5151),
-        ),
         itemCount: _bookList.length);
   }
   void updateState(List<BookInfo> bookList) {
-    _bookList.addAll(bookList);
+    _bookList = bookList;
     setState(() {
     });
   }

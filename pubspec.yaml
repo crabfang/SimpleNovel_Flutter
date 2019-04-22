@@ -28,7 +28,7 @@ dependencies:
   html: ^0.13.3
   # 官方的http还不能支持中文gbk的解析，这个项目就是为了解决gbk转成utf-8编码的
   # https://github.com/jzoom/gbk2utf8
-  gbk2utf8: ^0.0.1
+  gbk2utf8: ^1.0.0
   # https://github.com/flutterchina/dio
   # Flutter 常用工具类库 https://github.com/Sky24n/flustars
   # https://github.com/flutterchina/dio
