@@ -100,22 +100,12 @@ void actionClick(BuildContext context, int type) {
 
       Map<String, dynamic> params = new Map();
       params["searchtype"] = "keywords";
-//      params["searchkey"] = searchInputController.text;
       params["searchkey"] = Uri.encodeQueryComponent(searchInputController.text, encoding: gbk);
 
       String url = "https://www.fpzw.com/modules/article/search.php";
 //      Future<String> body = NetUtils.query(url, queryParameters: params);
 
-//      Uri oriUri = Uri.parse(url);
-//      Uri uri = Uri(
-//          scheme: oriUri.scheme,
-//          host: oriUri.host,
-//          path: oriUri.path,
-//          queryParameters: params);
-//      Future<String> body = NetUtils.queryUri(uri);
-
       String searchUrl = url + "?searchtype=keywords&searchkey=" + Uri.encodeQueryComponent(searchInputController.text, encoding: gbk);
-      print(searchUrl);
       Uri searchUri = Uri.parse(searchUrl);
       print(searchUri);
       Future<String> body = NetUtils.clientQuery(searchUrl);
@@ -135,7 +125,7 @@ void actionClick(BuildContext context, int type) {
 Future<List<BookInfo>> parseHtml(String htmlStr) async {
   List<BookInfo> bookList = new List();
   Dom.Document document = parse(htmlStr);
-  var list = document.body.getElementsByClassName("eachitem");
+  var list = document.body.getElementsByClassName("div.bortable");
   list.forEach((dl) => bookList.add(parseHtmlDl(dl)));
   return bookList;
 }
