@@ -17,13 +17,13 @@ class NetUtils {
     dio.interceptors.add(LogInterceptor());
     dio.options.connectTimeout = 5000;
     dio.options.contentType = ContentType.parse("application/x-www-form-urlencoded");
-    dio.options.responseType = ResponseType.bytes;
+    dio.options.responseType = ResponseType.json;
     return dio;
   }
   static Future<String> query(String url, {Map<String, dynamic> queryParameters}) async {
     Dio dio = createDio();
     Response response = await dio.get(url, queryParameters: queryParameters);
-    return gbk.decode(response.data);
+    return response.data;
   }
 
   static Future<String> queryUri(Uri uri) async {

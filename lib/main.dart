@@ -5,7 +5,6 @@ import 'package:flutter_demo/net.dart';
 import 'package:flutter_demo/novel/w_book_info.dart';
 import 'package:flutter_demo/waitingDialog.dart' as Waiting;
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:gbk2utf8/gbk2utf8.dart';
 import 'package:html/dom.dart' as Dom;
 import 'package:html/parser.dart' show parse;
 
@@ -99,16 +98,16 @@ void actionClick(BuildContext context, int type) {
       waitingDialog.updateContent("正在获取数据");
 
       Map<String, dynamic> params = new Map();
-      params["searchtype"] = "keywords";
-      params["searchkey"] = Uri.encodeQueryComponent(searchInputController.text, encoding: gbk);
+      params["search_field"] = "0";
+      params["q"] = searchInputController.text;
 
-      String url = "https://www.fpzw.com/modules/article/search.php";
-//      Future<String> body = NetUtils.query(url, queryParameters: params);
+      String url = "https://so.88dush.com/search/so.php";
+      Future<String> body = NetUtils.query(url, queryParameters: params);
 
-      String searchUrl = url + "?searchtype=keywords&searchkey=" + Uri.encodeQueryComponent(searchInputController.text, encoding: gbk);
-      Uri searchUri = Uri.parse(searchUrl);
-      print(searchUri);
-      Future<String> body = NetUtils.clientQuery(searchUrl);
+//      String searchUrl = url + "?searchtype=keywords&searchkey=" + Uri.encodeQueryComponent(searchInputController.text, encoding: gbk);
+//      Uri searchUri = Uri.parse(searchUrl);
+//      print(searchUri);
+//      Future<String> body = NetUtils.clientQuery(searchUrl);
 
       body.then((bodyStr) {
         waitingDialog.updateContent("数据解析");
@@ -125,31 +124,27 @@ void actionClick(BuildContext context, int type) {
 Future<List<BookInfo>> parseHtml(String htmlStr) async {
   List<BookInfo> bookList = new List();
   Dom.Document document = parse(htmlStr);
-  var list = document.body.getElementsByClassName("div.bortable");
-  list.forEach((dl) => bookList.add(parseHtmlDl(dl)));
+  var list = document.body.getElementsByClassName("block");
+  list.forEach((dl) {
+    BookInfo bookInfo = parseHtmlDl(dl);
+    if(bookInfo != null) {
+      bookList.add(bookInfo);
+    }
+  });
   return bookList;
 }
 
-BookInfo parseHtmlDl(Dom.Element dl) {
-  Dom.Element domTitle = dl.getElementsByClassName("caption").elementAt(0);
-  Dom.Element domImg = dl.getElementsByTagName("img").elementAt(0);
-  Dom.Element domText = dl.getElementsByClassName("text").elementAt(0);
+BookInfo parseHtmlDl(Dom.Element div) {
+  Dom.Element domImg = div.getElementsByTagName("img").elementAt(0);
+  Dom.Element domInfo = div.getElementsByClassName("div.block_txt").elementAt(0);
 
-  List<String> infoList = domText.innerHtml.split("<br>");
-  String author = "";
-  String updateTime = "";
-  String state = "";
-  if(infoList.length >= 3) {
-    author = parse(infoList.elementAt(0)).body.text;
-    updateTime = infoList.elementAt(1);
-    state = infoList.elementAt(2);
-  }
+  String title = domInfo.getElementsByTagName("h2").elementAt(0).text;
+  String url = domInfo.getElementsByTagName("a").elementAt(0).attributes["href"];
+  String pic = domImg.attributes["src"];
+  String author = domInfo.getElementsByTagName("p").elementAt(2).text;
+  String novelType = domInfo.getElementsByTagName("p").elementAt(3).text;
 
-  String title = domTitle.firstChild.text;
-  String url = domTitle.attributes.remove("href");
-  String pic = "https://www.fpzw.com" + domImg.attributes.remove("src");
-
-  return new BookInfo(pic, title, url, author: author, source: "富品", state: state, size: updateTime);
+  return new BookInfo(pic, title, url, author: author, source: "八八", state: novelType);
 }
 
 void toastInfo(String info) {
