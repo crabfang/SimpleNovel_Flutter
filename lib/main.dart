@@ -42,11 +42,11 @@ class MainState extends State<Main> {
       ),
       body: new ListView(
         children: <Widget>[
-            createRowBtn(context, "List", 0),
+//            createRowBtn(context, "List", 0),
+//            new Divider(),
+//            createRowBtn(context, "Detail", 1),
             new Divider(),
-            createRowBtn(context, "Detail", 1),
-            new Divider(),
-            createRowBtn(context, "Load", 2),
+            createRowBtn(context, "Search", 2),
             createEdit(searchInputController),
             listContent,
         ],
@@ -98,15 +98,28 @@ void actionClick(BuildContext context, int type) {
       Waiting.WaitingDialog waitingDialog = Waiting.showWaiting(context, "...");
       waitingDialog.updateContent("正在获取数据");
 
-      Map<String, String> params = new Map();
+      Map<String, dynamic> params = new Map();
       params["searchtype"] = "keywords";
-      params["searchkey"] = searchInputController.text;
-//      params["searchkey"] = Uri.encodeQueryComponent(searchInputController.text, encoding: gbk);
+//      params["searchkey"] = searchInputController.text;
+      params["searchkey"] = Uri.encodeQueryComponent(searchInputController.text, encoding: gbk);
 
       String url = "https://www.fpzw.com/modules/article/search.php";
-      Uri uri = Uri.dataFromString(url, encoding: gbk, parameters: params);
+//      Future<String> body = NetUtils.query(url, queryParameters: params);
 
-      Future<String> body = NetUtils.queryUri(uri);
+//      Uri oriUri = Uri.parse(url);
+//      Uri uri = Uri(
+//          scheme: oriUri.scheme,
+//          host: oriUri.host,
+//          path: oriUri.path,
+//          queryParameters: params);
+//      Future<String> body = NetUtils.queryUri(uri);
+
+      String searchUrl = url + "?searchtype=keywords&searchkey=" + Uri.encodeQueryComponent(searchInputController.text, encoding: gbk);
+      print(searchUrl);
+      Uri searchUri = Uri.parse(searchUrl);
+      print(searchUri);
+      Future<String> body = NetUtils.clientQuery(searchUrl);
+
       body.then((bodyStr) {
         waitingDialog.updateContent("数据解析");
         return parseHtml(bodyStr);
