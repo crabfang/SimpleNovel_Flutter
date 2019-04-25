@@ -27,24 +27,29 @@ InkWell _createBook(BookInfo bookInfo) {
                     new Text(
                       bookInfo.name,
                       maxLines: 1,
+                      style: TextStyle(fontWeight: FontWeight.w600),
                       overflow: TextOverflow.ellipsis,
                     ),
-                    new Expanded(
-                      flex: 1,
-                      child: new Text(
-                        bookInfo.author,
-                        maxLines: 3,
-                        softWrap: true,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    new Text(
+                      bookInfo.author,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    new Row(
-                      children: <Widget>[
-                        new Text(
-                          bookInfo.size,
-                        ),
-                      ],
-                    )
+                    new Text(
+                      bookInfo.type,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    new Text(
+                      bookInfo.source,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    new Text(
+                      bookInfo.desc,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 )),
             new Container(
@@ -72,10 +77,10 @@ InkWell _createBook(BookInfo bookInfo) {
 class BookInfo {
   String cover;
   String name;
-  String author;
-  String size;
-  String state;
-  String source;
   String url;
-  BookInfo(this.cover, this.name, this.url, { this.author:"", this.size:"", this.state:"", this.source:"" });
+  String author;
+  String type;
+  String source;
+  String desc;
+  BookInfo(this.cover, this.name, this.url, { this.author: "", this.type: "", this.source: "", this.desc: "" });
 }
