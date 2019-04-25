@@ -12,7 +12,7 @@ class SearchWidget extends StatelessWidget {
     return new MaterialApp(
       title: '搜索',
       theme: new ThemeData(
-        primaryColor: Colors.blueAccent,
+        primaryColor: Colors.blue,
       ),
       home: new SearchInput(context),
     );
@@ -56,7 +56,7 @@ class SearchInputState extends State<SearchInput> {
               new Expanded(
                 child: new IconButton(icon: new Icon(
                     Icons.search),
-                    onPressed: () => actionSearch(context)
+                    onPressed: () => actionSearch(widget._context)
                 ),
                 flex: 1,
               ),
@@ -86,7 +86,7 @@ Widget createEdit(TextEditingController controller) {
 }
 
 void actionSearch(BuildContext context) {
-  Waiting.WaitingDialog waitingDialog = Waiting.showWaiting(context, "...");
+  Waiting.WaitingDialog waitingDialog = Waiting.showWaiting(context, "请稍候...");
   waitingDialog.updateContent("正在获取数据");
 
   Map<String, dynamic> params = new Map();
@@ -96,19 +96,17 @@ void actionSearch(BuildContext context) {
   String url = "https://so.88dush.com/search/so.php";
   Future<String> body = NetUtils.query(url, queryParameters: params);
 
-//      String searchUrl = url + "?searchtype=keywords&searchkey=" + Uri.encodeQueryComponent(searchInputController.text, encoding: gbk);
-//      Uri searchUri = Uri.parse(searchUrl);
-//      print(searchUri);
-//      Future<String> body = NetUtils.clientQuery(searchUrl);
-
   body.then((bodyStr) {
-    waitingDialog.updateContent("数据解析");
-    return parseHtml(bodyStr);
-  }).then((bookList) {
-    listContent.setListData(bookList);
-    waitingDialog.updateContent("解析完成");
-  }).catchError((e) => Navigator.pop(context))
-      .whenComplete(() => Navigator.pop(context));
+        waitingDialog.updateContent("数据解析");
+        return parseHtml(bodyStr);
+      })
+      .then((bookList) {
+        listContent.setListData(bookList);
+        Navigator.pop(context);
+      })
+      .catchError((e) {
+        Navigator.pop(context);
+      });
 }
 
 Future<List<BookInfo>> parseHtml(String htmlStr) async {
@@ -131,7 +129,6 @@ BookInfo parseHtmlDl(Dom.Element div) {
   String title = getHtmlText(domInfo.getElementsByTagName("h2").elementAt(0));
   String url = domInfo.getElementsByTagName("a").elementAt(0).attributes["href"];
   String pic = domImg.attributes["src"];
-  print(pic);
   String author = getHtmlText(domInfo.getElementsByTagName("p").elementAt(2));
   String novelType = getHtmlText(domInfo.getElementsByTagName("p").elementAt(3));
   String desc = getHtmlText(domInfo.getElementsByTagName("p").elementAt(4));
@@ -169,11 +166,6 @@ class ContentState extends State<ListContent> {
   List<BookInfo> _bookList = new List();
   @override
   Widget build(BuildContext context) {
-//    return ListView.builder(
-//        scrollDirection: Axis.vertical,
-//        itemBuilder: (BuildContext context, int position) {
-//          return new WBookInfo(_bookList.elementAt(position));
-//        });
     return ListView.builder(
         shrinkWrap: true,
         physics:NeverScrollableScrollPhysics(),

@@ -1,3 +1,4 @@
+import 'package:SimpleNoval/book_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -6,14 +7,16 @@ class WBookInfo extends StatelessWidget {
   WBookInfo(BookInfo bookInfo):bookInfo = bookInfo;
   @override
   Widget build(BuildContext context) {
-    return _createBook(bookInfo);
+    return createBook(context, bookInfo);
   }
 }
 
-InkWell _createBook(BookInfo bookInfo) {
+InkWell createBook(BuildContext context, BookInfo bookInfo) {
   return new InkWell(
     onTap: () {
-      //TODO
+      Navigator.of(context).push(
+          new MaterialPageRoute(builder: (context) => new BookDetailWidget(bookInfo))
+      );
     },
     child: new Container(
         height: 160.0,
@@ -82,5 +85,16 @@ class BookInfo {
   String type;
   String source;
   String desc;
-  BookInfo(this.cover, this.name, this.url, { this.author: "", this.type: "", this.source: "", this.desc: "" });
+  BookInfo(this.cover, this.name, this.url, {
+    this.author: "",
+    this.type: "",
+    this.source: "",
+    this.desc: "",});
+}
+
+class ContentInfo {
+  String title;
+  String url;
+  String content;
+  ContentInfo(this.title, this.url, {this.content: ""});
 }

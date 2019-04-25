@@ -1,10 +1,14 @@
+import 'package:SimpleNoval/novel/w_book_info.dart';
 import 'package:flutter/material.dart';
 
-class Detail extends StatelessWidget {
+class BookContentWidget extends StatelessWidget {
+  BookInfo info;
+  BookContentWidget(this.info);
+
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-        title: 'Detail Flutter App',
+        title: info?.name,
         theme: new ThemeData(
           primaryColor: Colors.blue,
         ),
