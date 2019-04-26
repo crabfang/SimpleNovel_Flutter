@@ -9,13 +9,7 @@ import 'package:html/parser.dart' show parse;
 class SearchWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      title: '搜索',
-      theme: new ThemeData(
-        primaryColor: Colors.blue,
-      ),
-      home: new SearchInput(context),
-    );
+    return SearchInput(context);
   }
 }
 
@@ -26,23 +20,18 @@ class SearchInput extends StatefulWidget {
   createState() => new SearchInputState();
 }
 
-TextEditingController searchInputController = new TextEditingController();
-ListContent listContent = new ListContent();
 class SearchInputState extends State<SearchInput> {
-  void actionBack() {
-    Navigator.of(widget._context).pop();
-  }
+  TextEditingController searchInputController = new TextEditingController();
+  ListContent listContent = new ListContent();
   @override
   Widget build(BuildContext context) {
-//    final wordPair = new WordPair.random();
-//    return new Text(wordPair.asPascalCase);
     return new Scaffold (
       appBar: new AppBar(
         title: new Text('搜索'),
         elevation: 0,
         leading: new IconButton(
           icon: new Icon(Icons.arrow_back),
-          onPressed: actionBack,
+          onPressed: () => Navigator.of(widget._context).pop(),
         ),
       ),
       body: new ListView(
@@ -54,9 +43,9 @@ class SearchInputState extends State<SearchInput> {
                 flex: 4,
               ),
               new Expanded(
-                child: new IconButton(icon: new Icon(
-                    Icons.search),
-                    onPressed: () => actionSearch(widget._context)
+                child: new IconButton(
+                    icon: new Icon(Icons.search),
+                    onPressed: () => actionSearch(widget._context, listContent, searchInputController.text)
                 ),
                 flex: 1,
               ),
@@ -85,23 +74,23 @@ Widget createEdit(TextEditingController controller) {
   );
 }
 
-void actionSearch(BuildContext context) {
+void actionSearch(BuildContext context, ListContent listContent, String inputStr) {
   Waiting.WaitingDialog waitingDialog = Waiting.showWaiting(context, "请稍候...");
-  waitingDialog.updateContent("正在获取数据");
+  waitingDialog.updateContent("搜索中");
 
   Map<String, dynamic> params = new Map();
   params["search_field"] = "0";
-  params["q"] = searchInputController.text;
+  params["q"] = inputStr;
 
   String url = "https://so.88dush.com/search/so.php";
   Future<String> body = NetUtils.query(url, queryParameters: params);
 
   body.then((bodyStr) {
-        waitingDialog.updateContent("数据解析");
+        waitingDialog.updateContent("解析中");
         return parseHtml(bodyStr);
       })
-      .then((bookList) {
-        listContent.setListData(bookList);
+      .then((list) {
+        listContent.setListData(list);
         Navigator.pop(context);
       })
       .catchError((e) {
@@ -169,8 +158,9 @@ class ContentState extends State<ListContent> {
     return ListView.builder(
         shrinkWrap: true,
         physics:NeverScrollableScrollPhysics(),
+        itemCount: _bookList.length,
         itemBuilder: (context, index) => WBookInfo(_bookList.elementAt(index)),
-        itemCount: _bookList.length);
+    );
   }
   void updateState(List<BookInfo> bookList) {
     _bookList = bookList;

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:gbk2utf8/gbk2utf8.dart';
+import 'dart:convert' show utf8;
 
 class NetUtils {
   static Dio createDio() {
@@ -16,14 +17,20 @@ class NetUtils {
     };
     dio.interceptors.add(LogInterceptor());
     dio.options.connectTimeout = 5000;
-    dio.options.contentType = ContentType.parse("application/x-www-form-urlencoded");
-    dio.options.responseType = ResponseType.json;
+    dio.options.contentType = ContentType.parse("text/html");
+    dio.options.responseType = ResponseType.plain;
     return dio;
   }
   static Future<String> query(String url, {Map<String, dynamic> queryParameters}) async {
     Dio dio = createDio();
     Response response = await dio.get(url, queryParameters: queryParameters);
     return response.data;
+  }
+  static Future<String> queryGbk(String url, {Map<String, dynamic> queryParameters}) async {
+    Dio dio = createDio();
+    dio.options.responseType = ResponseType.bytes;
+    Response response = await dio.get(url, queryParameters: queryParameters);
+    return gbk.decode(response.data);
   }
 
   static Future<String> queryUri(Uri uri) async {

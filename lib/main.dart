@@ -1,3 +1,4 @@
+import 'package:SimpleNoval/book_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:SimpleNoval/novel/w_book_info.dart';
 import 'package:SimpleNoval/search.dart';
@@ -39,6 +40,10 @@ class MainState extends State<Main> {
             );
           }),
           new IconButton(icon: new Icon(Icons.book), onPressed: () {
+            BookInfo bookInfo = new BookInfo("", "元尊", "https://www.88dush.com/xiaoshuo/95/95770/", author: "作者：天蚕土豆");
+            Navigator.of(context).push(
+                new MaterialPageRoute(builder: (context) => new BookDetailWidget(bookInfo))
+            );
           }),
         ],
       ),
