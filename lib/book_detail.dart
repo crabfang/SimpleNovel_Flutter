@@ -177,9 +177,9 @@ class ContentState extends State<GridContent> {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(4, 0, 4, 0),
       shrinkWrap: true,
-      physics:NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 0),
+      physics: NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 10,

@@ -157,7 +157,7 @@ class ContentState extends State<ListContent> {
   Widget build(BuildContext context) {
     return ListView.builder(
         shrinkWrap: true,
-        physics:NeverScrollableScrollPhysics(),
+        physics: NeverScrollableScrollPhysics(),
         itemCount: _bookList.length,
         itemBuilder: (context, index) => WBookInfo(_bookList.elementAt(index)),
     );
