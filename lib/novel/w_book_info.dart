@@ -95,6 +95,6 @@ class BookInfo {
 class ContentInfo {
   String title;
   String url;
-  String content;
+  String content = "";
   ContentInfo(this.title, this.url, {this.content: ""});
 }

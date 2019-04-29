@@ -1,6 +1,7 @@
+import 'package:SimpleNoval/book_contents.dart';
 import 'package:SimpleNoval/net.dart';
 import 'package:SimpleNoval/novel/w_book_info.dart';
-import 'package:SimpleNoval/waitingDialog.dart' as Waiting;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:html/dom.dart' as Dom;
@@ -9,7 +10,6 @@ import 'package:html/parser.dart' show parse;
 class BookDetailWidget extends StatelessWidget {
   BookInfo info;
   BookDetailWidget(this.info);
-  BookDetailView bookDetailView;
 
   @override
   Widget build(BuildContext context) {
@@ -20,15 +20,18 @@ class BookDetailWidget extends StatelessWidget {
 class BookDetailView extends StatefulWidget {
   BuildContext _context;
   BookInfo info;
-  BookDetailViewState detailState = BookDetailViewState();
+  BookDetailState detailState = BookDetailState();
   BookDetailView(this._context, this.info);
   @override
   createState() => detailState;
 }
 
-class BookDetailViewState extends State<BookDetailView> {
+class BookDetailState extends State<BookDetailView> {
   String state = "状态：";
   String updateTime = "更新时间：";
+  String getBookUrl() {
+    return widget.info?.url;
+  }
   @override
   void initState() {
     super.initState();
@@ -42,8 +45,9 @@ class BookDetailViewState extends State<BookDetailView> {
     setState(() {});
   }
   void updateState(List<ContentInfo> contentList) {
-    gridWidget.setGridData(contentList);
-    setState(() {});
+    setState(() {
+      gridWidget.setGridData(contentList);
+    });
   }
   GridContent gridWidget = GridContent();
   @override
@@ -62,7 +66,7 @@ class BookDetailViewState extends State<BookDetailView> {
           }),
         ],
       ),
-      body: new ListView(
+      body: new Column(
         children: <Widget>[
           new Container(
             margin: const EdgeInsets.fromLTRB(20, 10.0, 20, 10.0),
@@ -84,7 +88,9 @@ class BookDetailViewState extends State<BookDetailView> {
               ],
             ),
           ),
-          gridWidget,
+          Expanded(
+            child: gridWidget,
+          ),
         ],
       ),
     );
@@ -95,26 +101,26 @@ class BookDetailViewState extends State<BookDetailView> {
   }
 }
 
-void loadDetail(BuildContext context, BookDetailViewState state, String url) {
-  Waiting.WaitingDialog waitingDialog = Waiting.showWaiting(context, "请稍候...");
-  waitingDialog.updateContent("正在获取数据");
+void loadDetail(BuildContext context, BookDetailState state, String url) {
+//  Waiting.WaitingDialog waitingDialog = Waiting.showWaiting(context, "请稍候...");
+//  waitingDialog.updateContent("正在获取数据");
 
   if(url == null || url.isEmpty) return;
 
   Future<String> body = NetUtils.queryGbk(url);
 
   body.then((bodyStr) {
-    waitingDialog.updateContent("数据解析");
+//    waitingDialog.updateContent("数据解析");
     return parseHtml(state, bodyStr);
   }).then((list) {
     state.updateState(list);
-    Navigator.pop(context);
+//    Navigator.pop(context);
   }).catchError((e) {
-    Navigator.pop(context);
+//    Navigator.pop(context);
   });
 }
 
-Future<List<ContentInfo>> parseHtml(BookDetailViewState state, String htmlStr) async {
+Future<List<ContentInfo>> parseHtml(BookDetailState state, String htmlStr) async {
   List<ContentInfo> contentList = new List<ContentInfo>();
   Dom.Document document = parse(htmlStr);
   var infoDom = document.body.querySelectorAll("div.msg").elementAt(0);
@@ -128,6 +134,7 @@ Future<List<ContentInfo>> parseHtml(BookDetailViewState state, String htmlStr) a
   list.forEach((dl) {
     ContentInfo contentInfo = parseHtmlDl(dl);
     if(contentInfo != null) {
+      contentInfo.url = state.getBookUrl() + contentInfo.url;
       contentList.add(contentInfo);
     }
   });
@@ -176,10 +183,16 @@ class ContentState extends State<GridContent> {
   List<ContentInfo> contentList = new List();
   @override
   Widget build(BuildContext context) {
+    if(contentList == null || contentList.length == 0) {
+      return Container(
+        child: CupertinoActivityIndicator(),
+        alignment: Alignment.center,
+      );
+    }
     return GridView.builder(
       shrinkWrap: true,
       padding: const EdgeInsets.fromLTRB(4, 0, 4, 0),
-      physics: NeverScrollableScrollPhysics(),
+//      physics: NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 10,
@@ -188,23 +201,30 @@ class ContentState extends State<GridContent> {
       itemCount: contentList.length,
       itemBuilder: (BuildContext context, int index) {
         ContentInfo info = contentList.elementAt(index);
-        return Container(
-          child: new Text(
-            info.title,
-            style: TextStyle(
-              color: Colors.blueAccent,
+        return GestureDetector(
+          child: Container(
+            child: new Text(
+              info.title,
+              style: TextStyle(
+                color: Colors.blueAccent,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            alignment: Alignment.centerLeft,
           ),
-          alignment: Alignment.centerLeft,
+          onTap: () {
+            Navigator.of(context).push(
+                new MaterialPageRoute(builder: (context) => new BookContentsWidget(contentList, info))
+            );
+          },
         );
       },
     );
   }
   void updateState(List<ContentInfo> contentList) {
-    this.contentList = contentList;
     setState(() {
+      this.contentList = contentList;
     });
   }
 }

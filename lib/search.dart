@@ -34,7 +34,7 @@ class SearchInputState extends State<SearchInput> {
           onPressed: () => Navigator.of(widget._context).pop(),
         ),
       ),
-      body: new ListView(
+      body: new Column(
         children: <Widget>[
           new Row(
             children: <Widget>[
@@ -51,7 +51,9 @@ class SearchInputState extends State<SearchInput> {
               ),
             ],
           ),
-          listContent,
+          Expanded(
+            child: listContent,
+          ),
         ],
       ),
     );
@@ -157,7 +159,7 @@ class ContentState extends State<ListContent> {
   Widget build(BuildContext context) {
     return ListView.builder(
         shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
+//        physics: NeverScrollableScrollPhysics(),
         itemCount: _bookList.length,
         itemBuilder: (context, index) => WBookInfo(_bookList.elementAt(index)),
     );
