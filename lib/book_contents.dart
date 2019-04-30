@@ -1,8 +1,7 @@
 import 'package:SimpleNoval/net.dart';
 import 'package:SimpleNoval/novel/w_book_info.dart';
-import 'package:SimpleNoval/waitingDialog.dart' as Waiting;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_html_view/flutter_html_view.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html/dom.dart' as Dom;
 import 'package:html/parser.dart' show parse;
@@ -47,10 +46,9 @@ class BookContentsState extends State<BookContentsView> {
           }),
         ],
       ),
-      body: new ListView(
-        children: <Widget>[
-          listWidget,
-        ],
+      body: Container(
+        color: Colors.greenAccent,
+        child: listWidget,
       ),
     );
   }
@@ -86,24 +84,31 @@ class ContentState extends State<ListContent> {
   }
   @override
   Widget build(BuildContext context) {
+    print(MediaQuery.of(context).size.height * 8 / 10);
     return ListView.builder(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
       itemCount: contentList.length,
       itemBuilder: (context, index) {
+        print("itemBuilder : " + index.toString());
         ContentInfo info = contentList.elementAt(index);
         return new Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-            Text(
-              info.title,
-              style: TextStyle(
-                color: Colors.lightBlue,
-                fontWeight: FontWeight.w600,
-              ),
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+          Text(
+            info.title,
+            style: TextStyle(
+              color: Colors.lightBlue,
+              fontWeight: FontWeight.w600,
             ),
-            Html(data: info.content),
+          ),
+          Container(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+            child: ItemContentWidget(info),
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height * 85 / 100,
+            ),
+          ),
         ],
         );
       },
@@ -120,23 +125,54 @@ class ContentState extends State<ListContent> {
   }
 }
 
-void loadContent(BuildContext context, ContentState state, ContentInfo info) {
-  Waiting.WaitingDialog waitingDialog = Waiting.showWaiting(context, "请稍候...");
-  waitingDialog.updateContent("正在获取数据");
+class ItemContentWidget extends StatefulWidget {
+  ContentInfo info;
+  ItemContentWidget(this.info);
+  @override
+  State<StatefulWidget> createState() {
+    return ItemContentState();
+  }
+}
 
+class ItemContentState extends State<ItemContentWidget> {
+  @override
+  Widget build(BuildContext context) {
+    String contentStr = widget.info?.content;
+    if(contentStr == null || contentStr.isEmpty) {
+      return Container(
+        child: CupertinoActivityIndicator(),
+        alignment: Alignment.center,
+      );
+    }
+    return Html(
+      data: widget.info.content,
+      defaultTextStyle: TextStyle(
+        color: Colors.lightBlue,
+        fontSize: 16,
+      ),
+    );
+  }
+  @override
+  void initState() {
+    super.initState();
+    loadContent(context, this, widget.info);
+  }
+  void updateContent(String contentStr) {
+    setState(() {
+      widget.info.content = contentStr;
+    });
+  }
+}
+
+void loadContent(BuildContext context, ItemContentState state, ContentInfo info) {
   if(info == null || info.url.isEmpty) return;
 
   Future<String> body = NetUtils.queryGbk(info.url);
 
   body.then((bodyStr) {
-    waitingDialog.updateContent("数据解析");
     return parseHtml(bodyStr);
   }).then((contentStr) {
-    info.content = contentStr;
-    state.updateData(info);
-    Navigator.pop(context);
-  }).catchError((e) {
-    Navigator.pop(context);
+    state.updateContent(contentStr);
   });
 }
 
