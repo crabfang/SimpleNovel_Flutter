@@ -1,4 +1,4 @@
-import 'package:SimpleNoval/book_detail.dart';
+import 'package:SimpleNovel/book_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -62,7 +62,7 @@ InkWell createBook(BuildContext context, BookInfo bookInfo) {
               child: new CachedNetworkImage(
                 fit: BoxFit.fitWidth,
                 imageUrl: bookInfo.cover,
-                errorWidget: new Icon(Icons.error),
+                errorWidget: (context, url, error) => new Icon(Icons.error),
               ),
             )
           ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:SimpleNoval/net.dart';
-import 'package:SimpleNoval/novel/w_book_info.dart';
-import 'package:SimpleNoval/waitingDialog.dart' as Waiting;
+import 'package:SimpleNovel/utils/net.dart';
+import 'package:SimpleNovel/novel/w_book_info.dart';
+import 'package:SimpleNovel/waitingDialog.dart' as Waiting;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:html/dom.dart' as Dom;
 import 'package:html/parser.dart' show parse;

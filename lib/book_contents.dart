@@ -1,5 +1,5 @@
-import 'package:SimpleNoval/net.dart';
-import 'package:SimpleNoval/novel/w_book_info.dart';
+import 'package:SimpleNovel/utils/net.dart';
+import 'package:SimpleNovel/novel/w_book_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -77,39 +77,39 @@ class ContentState extends State<ListContent> {
   List<ContentInfo> contentList = new List();
   int curPosition = 0;
   ContentState(this.contentList, this.curPosition);
-  double preListOffset = -1;
-  @override
-  void initState() {
-    super.initState();
-  }
   @override
   Widget build(BuildContext context) {
-    print(MediaQuery.of(context).size.height * 8 / 10);
+    double minItemHeight = MediaQuery.of(context).size.height * 85 / 100;
+    ScrollController controller = ScrollController();
+    Future.delayed(Duration(milliseconds: 200), () {
+      controller.jumpTo(curPosition * minItemHeight);
+    });
     return ListView.builder(
       shrinkWrap: true,
+      controller: controller,
       itemCount: contentList.length,
       itemBuilder: (context, index) {
-        print("itemBuilder : " + index.toString());
         ContentInfo info = contentList.elementAt(index);
-        return new Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-          Text(
-            info.title,
-            style: TextStyle(
-              color: Colors.lightBlue,
-              fontWeight: FontWeight.w600,
-            ),
+        return Container(
+          padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+          constraints: BoxConstraints(
+            minHeight: minItemHeight,
           ),
-          Container(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-            child: ItemContentWidget(info),
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height * 85 / 100,
-            ),
+          alignment: Alignment.topCenter,
+          child: new Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                info.title,
+                style: TextStyle(
+                  color: Colors.lightBlue,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              ItemContentWidget(info),
+            ],
           ),
-        ],
         );
       },
     );

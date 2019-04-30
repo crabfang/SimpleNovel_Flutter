@@ -1,6 +1,6 @@
-import 'package:SimpleNoval/book_contents.dart';
-import 'package:SimpleNoval/net.dart';
-import 'package:SimpleNoval/novel/w_book_info.dart';
+import 'package:SimpleNovel/book_contents.dart';
+import 'package:SimpleNovel/utils/net.dart';
+import 'package:SimpleNovel/novel/w_book_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -57,8 +57,10 @@ class BookDetailState extends State<BookDetailView> {
         backgroundColor: Colors.blue,
         elevation: 0,
         leading: new IconButton(
-          icon: new Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(widget._context).pop(),
+          icon: new Icon(Icons.playlist_add),
+          onPressed: () {
+
+          },
         ),
         title: new Text(widget.info?.name),
         actions: <Widget>[

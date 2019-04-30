@@ -1,7 +1,7 @@
-import 'package:SimpleNoval/book_detail.dart';
+import 'package:SimpleNovel/book_detail.dart';
 import 'package:flutter/material.dart';
-import 'package:SimpleNoval/novel/w_book_info.dart';
-import 'package:SimpleNoval/search.dart';
+import 'package:SimpleNovel/novel/w_book_info.dart';
+import 'package:SimpleNovel/search.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 void main() => runApp(new MyApp());

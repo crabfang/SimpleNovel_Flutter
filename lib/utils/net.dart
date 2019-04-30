@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:gbk2utf8/gbk2utf8.dart';
-import 'dart:convert' show utf8;
 
 class NetUtils {
   static Dio createDio() {
