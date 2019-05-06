@@ -70,14 +70,15 @@ class BookDetailState extends State<BookDetailView> {
       body: new Column(
         children: <Widget>[
           new Container(
-            margin: const EdgeInsets.fromLTRB(20, 10.0, 20, 10.0),
+            margin: const EdgeInsets.fromLTRB(20, 10.0, 20, 0.0),
+            alignment: Alignment.center,
+            child: new Text(widget.info.author),
+          ),
+          new Container(
+            margin: const EdgeInsets.fromLTRB(20, 0.0, 20, 10.0),
             child:
             new Row(
               children: <Widget>[
-                new Expanded(
-                  child: new Text(widget.info.author),
-                  flex: 1,
-                ),
                 new Expanded(
                   child: new Text(state),
                   flex: 1,

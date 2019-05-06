@@ -117,8 +117,8 @@ class ContentState extends State<ListContent> {
           return itemWidget(info, minItemHeight);
         },
         childCount: contentList.length,
-        firstVisibleChange: (int firstIndex) {
-          ContentInfo info = contentList.elementAt(firstIndex);
+        firstVisibleChange: (int firstIndex, int lastIndex) {
+          ContentInfo info = contentList.elementAt(lastIndex);
           if(widget.firstChange != null) {
             widget.firstChange(info);
           }
