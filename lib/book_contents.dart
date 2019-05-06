@@ -1,5 +1,8 @@
 import 'package:SimpleNovel/utils/net.dart';
 import 'package:SimpleNovel/novel/w_book_info.dart';
+import 'package:SimpleNovel/utils/thread_utils.dart';
+import 'package:SimpleNovel/widget/list_view_child_delegate.dart';
+import 'package:SimpleNovel/widget/title_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -28,10 +31,29 @@ class BookContentsView extends StatefulWidget {
 }
 
 class BookContentsState extends State<BookContentsView> {
+  String titleStr = "";
+  TitleWidget titleWidget;
   ListContent listWidget;
+  void changeTitle(String title) {
+    if(titleStr != title) {
+      ThreadUtils.doOnMain(() {
+        titleStr = title;
+        titleWidget.updateTitle(titleStr);
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
-    listWidget = ListContent(widget._context, widget.contentList, widget.info);
+    titleStr = widget.info?.title;
+    titleWidget = new TitleWidget(titleStr);
+    listWidget = ListContent(
+        widget._context,
+        widget.contentList,
+        widget.info,
+        (ContentInfo info) {
+          String title = info?.title;
+          changeTitle(title);
+        });
     return new Scaffold (
       appBar: new AppBar(
         backgroundColor: Colors.blue,
@@ -40,9 +62,10 @@ class BookContentsState extends State<BookContentsView> {
           icon: new Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(widget._context).pop(),
         ),
-        title: new Text(widget.info?.title),
+        title: titleWidget,
         actions: <Widget>[
           new IconButton(icon: new Icon(Icons.list), onPressed: (){
+            changeTitle("IconButton");
           }),
         ],
       ),
@@ -62,7 +85,8 @@ class BookContentsState extends State<BookContentsView> {
 class ListContent extends StatefulWidget {
   BuildContext _context;
   ContentState state;
-  ListContent(this._context, List<ContentInfo> contentList, ContentInfo curInfo) {
+  Function(ContentInfo) firstChange;
+  ListContent(this._context, List<ContentInfo> contentList, ContentInfo curInfo, this.firstChange) {
     int curIndex = contentList == null || curInfo == null ? 0 : contentList.indexOf(curInfo);
     state = ContentState(contentList, curIndex);
   }
@@ -79,39 +103,52 @@ class ContentState extends State<ListContent> {
   ContentState(this.contentList, this.curPosition);
   @override
   Widget build(BuildContext context) {
-    double minItemHeight = MediaQuery.of(context).size.height * 85 / 100;
+    double minItemHeight = 2 * MediaQuery.of(context).size.height * 85 / 100;
     ScrollController controller = ScrollController();
     Future.delayed(Duration(milliseconds: 200), () {
       controller.jumpTo(curPosition * minItemHeight);
     });
-    return ListView.builder(
+    return ListView.custom(
       shrinkWrap: true,
       controller: controller,
-      itemCount: contentList.length,
-      itemBuilder: (context, index) {
-        ContentInfo info = contentList.elementAt(index);
-        return Container(
-          padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-          constraints: BoxConstraints(
-            minHeight: minItemHeight,
+      childrenDelegate: MyChildrenDelegate(
+        (BuildContext context, int i) {
+          ContentInfo info = contentList.elementAt(i);
+          return itemWidget(info, minItemHeight);
+        },
+        childCount: contentList.length,
+        firstVisibleChange: (int firstIndex) {
+          ContentInfo info = contentList.elementAt(firstIndex);
+          if(widget.firstChange != null) {
+            widget.firstChange(info);
+          }
+        },
+      ),
+    );
+  }
+
+  Widget itemWidget(ContentInfo info, double minItemHeight) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+      constraints: BoxConstraints(
+        minHeight: minItemHeight,
+      ),
+      alignment: Alignment.topCenter,
+      child: new Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            info.title,
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.blueAccent,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          alignment: Alignment.topCenter,
-          child: new Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                info.title,
-                style: TextStyle(
-                  color: Colors.lightBlue,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              ItemContentWidget(info),
-            ],
-          ),
-        );
-      },
+          _ItemContentWidget(info),
+        ],
+      ),
     );
   }
   void updateData(ContentInfo curContent) {
@@ -125,16 +162,16 @@ class ContentState extends State<ListContent> {
   }
 }
 
-class ItemContentWidget extends StatefulWidget {
+class _ItemContentWidget extends StatefulWidget {
   ContentInfo info;
-  ItemContentWidget(this.info);
+  _ItemContentWidget(this.info);
   @override
   State<StatefulWidget> createState() {
-    return ItemContentState();
+    return _ItemContentState();
   }
 }
 
-class ItemContentState extends State<ItemContentWidget> {
+class _ItemContentState extends State<_ItemContentWidget> {
   @override
   Widget build(BuildContext context) {
     String contentStr = widget.info?.content;
@@ -164,7 +201,7 @@ class ItemContentState extends State<ItemContentWidget> {
   }
 }
 
-void loadContent(BuildContext context, ItemContentState state, ContentInfo info) {
+void loadContent(BuildContext context, _ItemContentState state, ContentInfo info) {
   if(info == null || info.url.isEmpty) return;
 
   Future<String> body = NetUtils.queryGbk(info.url);
@@ -172,7 +209,9 @@ void loadContent(BuildContext context, ItemContentState state, ContentInfo info)
   body.then((bodyStr) {
     return parseHtml(bodyStr);
   }).then((contentStr) {
-    state.updateContent(contentStr);
+    ThreadUtils.doOnMain(() {
+      state.updateContent(contentStr);
+    });
   });
 }
 

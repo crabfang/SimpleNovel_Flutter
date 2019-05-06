@@ -1,3 +1,4 @@
+import 'package:SimpleNovel/utils/thread_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:SimpleNovel/utils/net.dart';
 import 'package:SimpleNovel/novel/w_book_info.dart';
@@ -92,7 +93,9 @@ void actionSearch(BuildContext context, ListContent listContent, String inputStr
         return parseHtml(bodyStr);
       })
       .then((list) {
-        listContent.setListData(list);
+        ThreadUtils.doOnMain(() {
+          listContent.setListData(list);
+        });
         Navigator.pop(context);
       })
       .catchError((e) {
