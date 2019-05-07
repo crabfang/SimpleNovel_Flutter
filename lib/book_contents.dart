@@ -105,33 +105,67 @@ class ContentState extends State<ListContent> {
   Widget build(BuildContext context) {
     double minItemHeight = 2 * MediaQuery.of(context).size.height * 85 / 100;
     ScrollController controller = ScrollController();
-    Future.delayed(Duration(milliseconds: 200), () {
+    Future.delayed(Duration(milliseconds: 50), () {
       controller.jumpTo(curPosition * minItemHeight);
     });
-    return ListView.custom(
+    ListView listView = ListView.custom(
       shrinkWrap: true,
       controller: controller,
-      childrenDelegate: MyChildrenDelegate(
+      childrenDelegate: MySliverChildDelegate(
         (BuildContext context, int i) {
           ContentInfo info = contentList.elementAt(i);
-          return itemWidget(info, minItemHeight);
+          return _ItemWidget(info, minItemHeight);
         },
         childCount: contentList.length,
-        firstVisibleChange: (int firstIndex, int lastIndex) {
+        scrollChange: (int firstIndex, int lastIndex) {
           ContentInfo info = contentList.elementAt(lastIndex);
           if(widget.firstChange != null) {
             widget.firstChange(info);
           }
         },
+        indexCallback: (Widget itemWidget, int localIndex) {
+          ContentInfo info = contentList.elementAt(localIndex);
+          if(widget.firstChange != null) {
+            widget.firstChange(info);
+          }
+        }
       ),
     );
+    return listView;
   }
 
-  Widget itemWidget(ContentInfo info, double minItemHeight) {
+  void updateData(ContentInfo curContent) {
+    setState(() {
+      contentList.forEach((info) {
+        if(info.url == curContent.url) {
+          info.content = curContent.content;
+        }
+      });
+    });
+  }
+}
+
+class _ItemWidget extends StatefulWidget {
+  ContentInfo _info;
+  double _minHeight;
+  _ItemState state;
+  _ItemWidget(this._info, this._minHeight);
+  @override
+  State<StatefulWidget> createState() {
+    state = _ItemState();
+    return state;
+  }
+}
+
+class _ItemState extends State<_ItemWidget> {
+  _ItemContentWidget contentWidget;
+  @override
+  Widget build(BuildContext context) {
+    contentWidget = _ItemContentWidget(widget._info);
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
       constraints: BoxConstraints(
-        minHeight: minItemHeight,
+        minHeight: widget._minHeight,
       ),
       alignment: Alignment.topCenter,
       child: new Column(
@@ -139,35 +173,28 @@ class ContentState extends State<ListContent> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Text(
-            info.title,
+            widget._info?.title,
             style: TextStyle(
               fontSize: 20,
               color: Colors.blueAccent,
               fontWeight: FontWeight.w600,
             ),
           ),
-          _ItemContentWidget(info),
+          contentWidget,
         ],
       ),
     );
-  }
-  void updateData(ContentInfo curContent) {
-    contentList.forEach((info) {
-      if(info.url == curContent.url) {
-        info.content = curContent.content;
-      }
-    });
-    setState(() {
-    });
   }
 }
 
 class _ItemContentWidget extends StatefulWidget {
   ContentInfo info;
+  _ItemContentState state;
   _ItemContentWidget(this.info);
   @override
   State<StatefulWidget> createState() {
-    return _ItemContentState();
+    state = _ItemContentState();
+    return state;
   }
 }
 
@@ -189,45 +216,45 @@ class _ItemContentState extends State<_ItemContentWidget> {
       ),
     );
   }
-  @override
-  void initState() {
-    super.initState();
-    loadContent(context, this, widget.info);
-  }
   void updateContent(String contentStr) {
     setState(() {
       widget.info.content = contentStr;
     });
   }
-}
+  void loadContent(BuildContext context, _ItemContentState state, ContentInfo info) {
+    if(info == null || info.url.isEmpty) return;
 
-void loadContent(BuildContext context, _ItemContentState state, ContentInfo info) {
-  if(info == null || info.url.isEmpty) return;
+    Future<String> body = NetUtils.queryGbk(info.url);
 
-  Future<String> body = NetUtils.queryGbk(info.url);
-
-  body.then((bodyStr) {
-    return parseHtml(bodyStr);
-  }).then((contentStr) {
-    ThreadUtils.doOnMain(() {
-      state.updateContent(contentStr);
+    body.then((bodyStr) {
+      return parseHtml(bodyStr);
+    }).then((contentStr) {
+      ThreadUtils.doOnMain(() {
+        state.updateContent(contentStr);
+      });
     });
-  });
-}
-
-Future<String> parseHtml(String htmlStr) async {
-  Dom.Document document = parse(htmlStr);
-
-  var contentDom = document.body.querySelectorAll("div.yd_text2");
-  if(contentDom != null) {
-    return contentDom.elementAt(0).text;
   }
-  return "";
-}
 
-String getHtmlText(Dom.Element element) {
-  return element?.text
-      ?.replaceAll("\n", "")
-      ?.replaceAll("\t", "")
-      ?.trim();
+  Future<String> parseHtml(String htmlStr) async {
+    Dom.Document document = parse(htmlStr);
+
+    var contentDom = document.body.querySelectorAll("div.yd_text2");
+    if(contentDom != null) {
+      return contentDom.elementAt(0).text;
+    }
+    return "";
+  }
+
+  String getHtmlText(Dom.Element element) {
+    return element?.text
+        ?.replaceAll("\n", "")
+        ?.replaceAll("\t", "")
+        ?.trim();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadContent(context, this, widget.info);
+  }
 }
